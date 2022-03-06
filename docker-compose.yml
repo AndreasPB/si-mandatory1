@@ -1,7 +1,14 @@
 services:
   api:
+    build: ./api
     container_name: api
     restart: always
-    build: ./api
     ports:
       - 2000:2000
+  web:
+    build: ./web
+    container_name: web
+    restart: always
+    ports:
+      - 3000:3000
+      - 24678:24678
