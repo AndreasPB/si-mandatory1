@@ -1,0 +1,7 @@
+services:
+  api:
+    container_name: api
+    restart: always
+    build: ./api
+    ports:
+      - 2000:2000
