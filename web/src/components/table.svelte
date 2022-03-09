@@ -3,7 +3,7 @@
   const fetchUsers = fetch(`${API_URL}/user`).then(res => res.json())
 </script>
 
-<table>
+<table role="grid">
   <thead>
     <tr>
       <th scope="col">#</th>
