@@ -1,6 +1,6 @@
 <script lang="ts">
   const API_URL = "http://localhost:2000"
-  const fetchUsers = fetch(`${API_URL}/find-user`).then(res => res.json())
+  const fetchUsers = fetch(`${API_URL}/user`).then(res => res.json())
 </script>
 
 <table>
