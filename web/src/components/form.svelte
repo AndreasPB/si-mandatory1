@@ -7,7 +7,7 @@
 
     <label for="phone">
       Phone
-      <input type="text" name="phone" placeholder="88 88 88 88" required />
+      <input type="number" name="phone" placeholder="12345678" required />
       <small>We'll never share your phone number with anyone else.</small>
     </label>
   </div>
@@ -15,7 +15,11 @@
   <div class="grid">
     <label for="description"
       >Description
-      <input type="text" name="description" placeholder="Description" />
+      <input
+        type="text"
+        name="description"
+        placeholder="Not sure why this is here tbh"
+      />
     </label>
   </div>
 

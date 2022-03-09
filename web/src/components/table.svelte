@@ -16,9 +16,9 @@
     <tbody>
       <tr>
         <th scope="row">1</th>
-        <td>Loading...</td>
-        <td>Loading...</td>
-        <td>Loading...</td>
+        <td aria-busy="true">Loading...</td>
+        <td aria-busy="true">Loading...</td>
+        <td aria-busy="true">Loading...</td>
       </tr>
     </tbody>
   {:then users}
