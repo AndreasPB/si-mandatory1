@@ -1,7 +1,11 @@
 mod document;
 mod routes;
 
-use axum::{extract::Extension, routing::get, Router};
+use axum::{
+    extract::Extension,
+    routing::{get, post},
+    Router,
+};
 use mongodb::{options::ClientOptions, Client};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
@@ -39,6 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_client = Client::with_options(client_options)?.database("db");
     let app = Router::new()
         .route("/find-user/:name", get(routes::find_user))
+        .route("/add-user", post(routes::add_user))
         // add 'db_client' to all request's extensions so handlers can access it.
         .layer(Extension(db_client))
         // logging of requests and responses
