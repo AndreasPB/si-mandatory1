@@ -26,14 +26,14 @@ async def post_user(user: UserCreate):
 
 
 @app.get("/user")
-async def find_users():
+async def get_users():
     """Finds all users"""
     users = await User.find().to_list()
     return list(map(dict, users))
 
 
 @app.get("/user/{name}")
-async def find_user_by_name(name: str):
+async def get_user_by_name(name: str):
     """Finds the user by name"""
     return await User.find_one(User.name == name)
 

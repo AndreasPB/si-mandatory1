@@ -28,7 +28,7 @@
           <th scope="row">{i + 1}</th>
           <td>{user.name}</td>
           <td>{user.phone}</td>
-          <td>{users.description}</td>
+          <td>{user.description}</td>
         </tr>
       </tbody>
     {/each}
