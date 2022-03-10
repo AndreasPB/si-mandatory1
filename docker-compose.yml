@@ -9,6 +9,20 @@ services:
       - mongo
     volumes:
       - ./api:/app
+  rust_api:
+    build:
+      context: ./rust_api
+      target: ${APP_ENVIRONMENT}
+      args:
+        - APP_ENV=${APP_ENVIRONMENT}
+    container_name: rust_api
+    restart: always
+    ports:
+      - 9000:9000
+    links:
+      - mongo
+    volumes:
+      - ./rust_api:/app
   web:
     build: ./web
     container_name: web
