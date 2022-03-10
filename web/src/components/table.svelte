@@ -1,5 +1,5 @@
 <script lang="ts">
-  const API_URL = "http://localhost:2000"
+  const API_URL = "http://localhost:9000"
   const fetchUsers = fetch(`${API_URL}/user`).then(res => res.json())
 </script>
 

@@ -1,10 +1,31 @@
+<script lang="ts">
+  const API_URL = "http://localhost:9000"
+
+  const handleSubmit = async (event: SubmitEvent) => {
+    const form = event.target as HTMLFormElement
+
+    // Sending body as x-www-form-url-encoded
+    await fetch(form.action, {
+      method: form.method,
+      body: new URLSearchParams([...(new FormData(form) as any)]),
+    })
+      .then((response: Response) => response.json())
+      .then(json => json)
+      .catch(error => console.log(error))
+  }
+</script>
+
 <article>
   <div>
     <hgroup>
       <h1>Register</h1>
       <h2>Enter your stuff</h2>
     </hgroup>
-    <form>
+    <form
+      action={`${API_URL}/user`}
+      method="post"
+      on:submit|preventDefault={handleSubmit}
+    >
       <div class="grid">
         <label for="name">
           Name
