@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Form from "../components/form.svelte"
+  import Register from "../components/register.svelte"
 </script>
 
-<Form />
+<Register />
