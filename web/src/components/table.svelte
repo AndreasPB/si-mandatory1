@@ -1,6 +1,7 @@
 <script lang="ts">
-  const API_URL = "https://apiv3.test.streamchaser.tv"
-  const fetchUsers = fetch(`${API_URL}/user`).then(res => res.json())
+  import { variables } from "../variables"
+
+  const fetchUsers = fetch(`${variables.rustApi}/user`).then(res => res.json())
 </script>
 
 <table role="grid">

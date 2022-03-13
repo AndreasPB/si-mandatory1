@@ -1,5 +1,5 @@
 <script lang="ts">
-  const API_URL = "https://apiv3.test.streamchaser.tv"
+  import { variables } from "../variables"
 
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
@@ -22,7 +22,7 @@
       <h2>Enter your stuff</h2>
     </hgroup>
     <form
-      action={`${API_URL}/user`}
+      action={`${variables.rustApi}/user`}
       method="post"
       on:submit|preventDefault={handleSubmit}
     >
