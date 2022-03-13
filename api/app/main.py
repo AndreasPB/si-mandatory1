@@ -2,9 +2,9 @@ from fastapi import FastAPI, Form
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
-from .document import client, User, UserLogin, UserRegister, UserBase
+from .document import client, User, UserRegister, UserBase
 from pymongo.errors import DuplicateKeyError
-from .utils import generate_token
+from .utils import fatsms_send_sms, generate_token
 import jwt
 
 
@@ -37,11 +37,12 @@ async def sign_in(phone: str = Form(...), password: str = Form(...)):
 
 
 @app.post("/send_message")
-def send_message(token: str = Form(...), message: str = Form(...), to_phone: str = Form(...)):
+async def send_message(token: str = Form(...), message: str = Form(...), to_phone: str = Form(...)):
     """Sends a message"""
     try:
-        if decoded := jwt.decode(token, secret, algorithms=["HS256"]):
-            return decoded
+        if jwt.decode(token, secret, algorithms=["HS256"]):
+            await fatsms_send_sms(message=message, to_phone=to_phone)
+            return {"detail" : "Message will be sent within 1 minute"}
     except jwt.exceptions.DecodeError:
         raise HTTPException(status_code=403, detail="Unautherized")
 
@@ -53,11 +54,11 @@ async def post_user(phone: str = Form(...), name: str = Form(...)):
     try:
         user = User(phone=phone, password=password, name=name)
         await user.save()
-        # TODO: Send SMS
+        await fatsms_send_sms(message=password, to_phone=phone)
     except DuplicateKeyError as e:
         print(e)
         raise HTTPException(status_code=409, detail="User already exists")
-    return user
+    return UserRegister(phone=phone, name=name)
 
 
 @app.get("/user")

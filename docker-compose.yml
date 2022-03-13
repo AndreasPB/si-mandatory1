@@ -3,6 +3,8 @@ services:
     build: ./api
     container_name: api
     restart: always
+    env_file:
+      - .env
     ports:
       - 2000:2000
     links:
