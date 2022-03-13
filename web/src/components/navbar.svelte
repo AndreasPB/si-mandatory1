@@ -6,5 +6,6 @@
     <li><a href="/overview">Overview</a></li>
     <li><a href="/login">Login</a></li>
     <li><a href="/register">Register</a></li>
+    <!-- TODO: Add logout(destroy stored JWT) -->
   </ul>
 </nav>

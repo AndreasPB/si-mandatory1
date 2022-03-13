@@ -1,8 +1,6 @@
 <script lang="ts">
   import { variables } from "../variables"
 
-  // TODO: Add JWT to session/local storage
-
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
 
@@ -20,26 +18,34 @@
 <article>
   <div>
     <hgroup>
-      <h1>Login</h1>
+      <h1>Register</h1>
       <h2>Enter your stuff</h2>
     </hgroup>
     <form
-      action={`${variables.pythonApi}/login`}
+      action={`${variables.rustApi}/user`}
       method="post"
       on:submit|preventDefault={handleSubmit}
     >
       <div class="grid">
+        <label for="name">
+          Name
+          <input type="text" name="name" placeholder="John Smith" required />
+        </label>
         <label for="phone">
           Phone
           <input type="number" name="phone" placeholder="12345678" required />
-        </label>
-        <label for="token">
-          Token
-          <input type="text" name="token" placeholder="1234" required />
-          <small>This is the token you've received by SMS.</small>
+          <small>We'll never share your phone number with anyone else.</small>
         </label>
       </div>
-      <button type="submit">Log in</button>
+      <label for="description"
+        >Description
+        <input
+          type="text"
+          name="description"
+          placeholder="Not sure why this is here tbh"
+        />
+      </label>
+      <button type="submit">Submit</button>
     </form>
   </div>
 </article>

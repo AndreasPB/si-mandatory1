@@ -10,7 +10,7 @@
       <th scope="col">#</th>
       <th scope="col">Name</th>
       <th scope="col">Phone</th>
-      <th scope="col">Token</th>
+      <th scope="col">Description</th>
     </tr>
   </thead>
   {#await fetchUsers}
@@ -29,7 +29,7 @@
           <th scope="row">{i + 1}</th>
           <td>{user.name}</td>
           <td>{user.phone}</td>
-          <td>{user.token}</td>
+          <td>{user.description}</td>
         </tr>
       </tbody>
     {/each}
