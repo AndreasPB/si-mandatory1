@@ -1,5 +1,6 @@
 <script lang="ts">
   import { variables } from "../variables"
+  import { auth } from "../stores/jwt"
 
   // TODO: Add JWT to session/local storage
 
@@ -7,13 +8,15 @@
     const form = event.target as HTMLFormElement
 
     // Sending body as x-www-form-url-encoded
-    await fetch(form.action, {
+    const res = await fetch(form.action, {
       method: form.method,
       body: new URLSearchParams([...(new FormData(form) as any)]),
     })
-      .then((response: Response) => response.json())
-      .then(json => json)
+      .then((response: Response) => response)
       .catch(error => console.log(error))
+    if (res && res.status === 200) {
+      $auth = await res.text()
+    }
   }
 </script>
 
@@ -33,9 +36,9 @@
           Phone
           <input type="number" name="phone" placeholder="12345678" required />
         </label>
-        <label for="token">
-          Token
-          <input type="text" name="token" placeholder="1234" required />
+        <label for="password">
+          Password
+          <input type="text" name="password" placeholder="1234" required />
           <small>This is the token you've received by SMS.</small>
         </label>
       </div>
