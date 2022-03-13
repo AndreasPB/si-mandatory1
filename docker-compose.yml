@@ -14,8 +14,8 @@ services:
       - intern
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend-web.rule=Host(`apiv1.${HOST_NAME}`)"
-      - "traefik.http.routers.backend-secured.rule=Host(`apiv1.${HOST_NAME}`)"
+      - "traefik.http.routers.backend-web.rule=Host(`python.${HOST_NAME}`)"
+      - "traefik.http.routers.backend-secured.rule=Host(`python.${HOST_NAME}`)"
       - "traefik.http.routers.backend-secured.tls.certresolver=mytlschallenge"
       - "traefik.docker.network=traefik"
   rust_api:
@@ -28,8 +28,6 @@ services:
     restart: always
     ports:
       - 9000:9000
-    depends_on:
-      - extern
     links:
       - mongo
     volumes:
@@ -39,8 +37,8 @@ services:
       - intern
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rust-api-web.rule=Host(`apiv2.${HOST_NAME}`)"
-      - "traefik.http.routers.rust-api-secured.rule=Host(`apiv2.${HOST_NAME}`)"
+      - "traefik.http.routers.rust-api-web.rule=Host(`rust.${HOST_NAME}`)"
+      - "traefik.http.routers.rust-api-secured.rule=Host(`rust.${HOST_NAME}`)"
       - "traefik.http.routers.rust-api-secured.tls.certresolver=mytlschallenge"
       - "traefik.docker.network=traefik"
   web:
@@ -94,7 +92,6 @@ services:
       ## Provider Settings - https://docs.traefik.io/providers/docker/#provider-configuration ##
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
-      - --providers.file.filename=/dynamic.yml
       - --providers.docker.network=web
       ## Entrypoints Settings - https://docs.traefik.io/routing/entrypoints/#configuration ##
       - --entrypoints.web.address=:80
@@ -106,7 +103,6 @@ services:
     volumes:
       - ./letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./dynamic.yml:/dynamic.yml
     networks:
       - extern
     labels:
