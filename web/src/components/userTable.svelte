@@ -1,7 +1,7 @@
 <script lang="ts">
   import { variables } from "../variables"
 
-  const fetchUsers = fetch(`${variables.rustApi}/user`).then(res => res.json())
+  const fetchUsers = fetch(`${variables.pythonApi}/user`).then(res => res.json())
 </script>
 
 <table role="grid">

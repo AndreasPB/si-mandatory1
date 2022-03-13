@@ -1,5 +1,1 @@
-<script lang="ts">
-  import Register from "../components/register.svelte"
-</script>
-
-<Register />
+<h1>Welcome to the page!</h1>

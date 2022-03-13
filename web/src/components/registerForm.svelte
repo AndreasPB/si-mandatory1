@@ -1,6 +1,8 @@
 <script lang="ts">
   import { variables } from "../variables"
 
+  let errorMsg: string
+
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
 
@@ -11,7 +13,7 @@
     })
       .then((response: Response) => response.json())
       .then(json => json)
-      .catch(error => console.log(error))
+      .catch(error => ((errorMsg = error), console.log("hest")))
   }
 </script>
 
@@ -22,7 +24,7 @@
       <h2>Enter your stuff</h2>
     </hgroup>
     <form
-      action={`${variables.rustApi}/user`}
+      action={`${variables.pythonApi}/user`}
       method="post"
       on:submit|preventDefault={handleSubmit}
     >
@@ -37,15 +39,8 @@
           <small>We'll never share your phone number with anyone else.</small>
         </label>
       </div>
-      <label for="description"
-        >Description
-        <input
-          type="text"
-          name="description"
-          placeholder="Not sure why this is here tbh"
-        />
-      </label>
-      <button type="submit">Submit</button>
+      <button type="submit">Register</button>
+      <h1>{errorMsg}</h1>
     </form>
   </div>
 </article>
