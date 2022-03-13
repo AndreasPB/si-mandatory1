@@ -1,7 +1,9 @@
 <script lang="ts">
   import { variables } from "../variables"
 
-  const fetchUsers = fetch(`${variables.rustApi}/user`).then(res => res.json())
+  const fetchUsers = fetch(`${variables.pythonApi}/user`).then(res =>
+    res.json().catch(error => console.log(error))
+  )
 </script>
 
 <table role="grid">
@@ -10,7 +12,7 @@
       <th scope="col">#</th>
       <th scope="col">Name</th>
       <th scope="col">Phone</th>
-      <th scope="col">Token</th>
+      <th scope="col">Password</th>
     </tr>
   </thead>
   {#await fetchUsers}
@@ -29,7 +31,7 @@
           <th scope="row">{i + 1}</th>
           <td>{user.name}</td>
           <td>{user.phone}</td>
-          <td>{user.token}</td>
+          <td>{user.password}</td>
         </tr>
       </tbody>
     {/each}

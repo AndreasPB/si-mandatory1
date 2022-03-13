@@ -22,7 +22,7 @@
       <h2>Enter your stuff</h2>
     </hgroup>
     <form
-      action={`${variables.rustApi}/user`}
+      action={`${variables.pythonApi}/user`}
       method="post"
       on:submit|preventDefault={handleSubmit}
     >
