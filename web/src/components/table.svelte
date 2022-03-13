@@ -1,5 +1,5 @@
 <script lang="ts">
-  const API_URL = "http://localhost:9000"
+  const API_URL = "https://apiv3.test.streamchaser.tv"
   const fetchUsers = fetch(`${API_URL}/user`).then(res => res.json())
 </script>
 

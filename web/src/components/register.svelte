@@ -1,5 +1,5 @@
 <script lang="ts">
-  const API_URL = "http://localhost:9000"
+  const API_URL = "https://apiv3.test.streamchaser.tv"
 
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
