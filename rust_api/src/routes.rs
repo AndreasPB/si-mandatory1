@@ -1,3 +1,5 @@
+use rand::Rng;
+
 // futures_util provides common utilities and extension traits
 // for async programming
 use futures_util::StreamExt;
@@ -11,7 +13,7 @@ use axum::{
 use mongodb::bson::doc;
 use serde_json::json;
 
-use crate::document::User;
+use crate::document::{UserBase, UserLogin, UserRegister};
 
 pub enum UserError {
     NotFound,
@@ -19,14 +21,25 @@ pub enum UserError {
     IO,
 }
 
+// --------- UTIL --------------
+fn generate_token() -> String {
+    const TOKEN_CHAR_SET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+                            abcdefghijklmnopqrstuvwxyz\
+                            0123456789";
+    let mut rng = rand::thread_rng();
+    (0..4)
+        .map(|_| TOKEN_CHAR_SET[rng.gen_range(0..TOKEN_CHAR_SET.len())] as char)
+        .collect::<String>()
+}
+
 // Handler for `GET /user`
 pub async fn get_all_users(
     Extension(db_client): Extension<mongodb::Database>,
-) -> Result<Json<Vec<User>>, UserError> {
-    let users = db_client.collection::<User>("users");
+) -> Result<Json<Vec<UserBase>>, UserError> {
+    let users = db_client.collection::<UserBase>("User");
 
     let mut cursor = users.find(None, None).await?;
-    let mut retrieved_users: Vec<User> = Vec::new();
+    let mut retrieved_users: Vec<UserBase> = Vec::new();
     while let Some(user) = cursor.next().await {
         retrieved_users.push(user?);
     }
@@ -38,8 +51,8 @@ pub async fn get_all_users(
 pub async fn get_user(
     Path(name): Path<String>,
     Extension(db_client): Extension<mongodb::Database>,
-) -> Result<Json<User>, UserError> {
-    let users = db_client.collection::<User>("users");
+) -> Result<Json<UserBase>, UserError> {
+    let users = db_client.collection::<UserBase>("User");
 
     let filter = doc! { "name": name };
     let user = match users.find_one(filter, None).await? {
@@ -53,12 +66,19 @@ pub async fn get_user(
 // Handler for POST /user
 // https://docs.rs/axum/latest/axum/extract/struct.Form.html
 pub async fn post_user(
-    form: Form<User>,
+    form: Form<UserRegister>,
     Extension(db_client): Extension<mongodb::Database>,
-) -> Result<Json<User>, UserError> {
+) -> Result<Json<UserBase>, UserError> {
     let user = form.0;
+
+    let token = generate_token();
+    let user = UserBase {
+        name: user.name,
+        phone: user.phone,
+        token: token.to_string(),
+    };
     db_client
-        .collection::<User>("users")
+        .collection::<UserBase>("User")
         .insert_one(user.to_owned(), None)
         .await
         .map_err(|_| UserError::NotCreated)?;
