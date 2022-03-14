@@ -1,3 +1,5 @@
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use rand::Rng;
 
 // futures_util provides common utilities and extension traits
@@ -10,14 +12,26 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use mongodb::bson::doc;
-use serde_json::json;
+use serde_json::{json, Value};
 
-use crate::document::{UserBase, UserLogin, UserRegister};
+use crate::document::{JwtClaim, Message, UserBase, UserLogin, UserRegister};
+
+const SECRET: &str = "6horse9";
+
+#[derive(Debug)]
+pub enum JwtError {
+    InvalidToken,
+    InvalidSignature,
+    ExpiredSignature,
+}
 
 pub enum UserError {
+    AlreadyExists,
     NotFound,
     NotCreated,
+    PasswordMismatch,
     IO,
 }
 
@@ -32,7 +46,6 @@ fn generate_token() -> String {
         .collect::<String>()
 }
 
-// Handler for `GET /user`
 pub async fn get_all_users(
     Extension(db_client): Extension<mongodb::Database>,
 ) -> Result<Json<Vec<UserBase>>, UserError> {
@@ -47,7 +60,6 @@ pub async fn get_all_users(
     Ok(retrieved_users.into())
 }
 
-// Handler for `GET /user/:name`
 pub async fn get_user(
     Path(name): Path<String>,
     Extension(db_client): Extension<mongodb::Database>,
@@ -63,27 +75,95 @@ pub async fn get_user(
     Ok(user.into())
 }
 
-// Handler for POST /user
 // https://docs.rs/axum/latest/axum/extract/struct.Form.html
 pub async fn post_user(
     form: Form<UserRegister>,
     Extension(db_client): Extension<mongodb::Database>,
-) -> Result<Json<UserBase>, UserError> {
+) -> Result<(StatusCode, Json<UserRegister>), UserError> {
     let user = form.0;
 
-    let token = generate_token();
-    let user = UserBase {
-        name: user.name,
-        phone: user.phone,
-        token: token.to_string(),
-    };
-    db_client
+    // Check if phone already exists in DB
+    if db_client
         .collection::<UserBase>("User")
-        .insert_one(user.to_owned(), None)
-        .await
-        .map_err(|_| UserError::NotCreated)?;
+        .find_one(doc! { "phone": &user.phone }, None)
+        .await?
+        .is_some()
+    {
+        return Err(UserError::AlreadyExists);
+    } else {
+        let token = generate_token();
+        let user_base = UserBase {
+            name: user.name.clone(),
+            phone: user.phone.clone(),
+            password: token.to_string(),
+        };
+        db_client
+            .collection::<UserBase>("User")
+            .insert_one(user_base, None)
+            .await
+            .map_err(|_| UserError::NotCreated)?;
+    }
 
-    Ok(user.into())
+    Ok((StatusCode::CREATED, user.into()))
+}
+
+pub async fn post_login(
+    form: Form<UserLogin>,
+    Extension(db_client): Extension<mongodb::Database>,
+) -> Result<(StatusCode, String), UserError> {
+    let users = db_client.collection::<UserBase>("User");
+    let login_data = form.0;
+
+    if let Some(user) = users
+        .find_one(doc! {"phone": login_data.phone}, None)
+        .await?
+    {
+        if user.password == login_data.password {
+            let jwt_header = Header::new(Algorithm::HS256);
+            let jwt_claim = JwtClaim {
+                exp: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .checked_add(Duration::new(600, 0))
+                    .unwrap()
+                    .as_secs() as usize,
+                jwt: user,
+            };
+            let jwt = encode(
+                &jwt_header,
+                &jwt_claim,
+                &EncodingKey::from_secret(SECRET.as_ref()),
+            );
+
+            Ok((
+                StatusCode::OK,
+                jwt.map_or_else(|err| err.to_string(), |value| value),
+            ))
+        } else {
+            Err(UserError::PasswordMismatch)
+        }
+    } else {
+        Err(UserError::NotFound)
+    }
+}
+
+pub async fn post_send_message(form: Form<Message>) -> Result<Json<Value>, JwtError> {
+    let message = form.0;
+
+    decode::<JwtClaim>(
+        &message.jwt,
+        &DecodingKey::from_secret(SECRET.as_ref()),
+        &Validation::new(Algorithm::HS256),
+    )
+    .map_err(|err| match err.kind() {
+        jsonwebtoken::errors::ErrorKind::InvalidSignature => JwtError::InvalidSignature,
+        jsonwebtoken::errors::ErrorKind::ExpiredSignature => JwtError::ExpiredSignature,
+        _ => JwtError::InvalidToken,
+    })?;
+
+    Ok(Json(
+        json!({"detail": "Message will be sent within 1 minute"}),
+    ))
 }
 
 impl From<mongodb::error::Error> for UserError {
@@ -95,11 +175,29 @@ impl From<mongodb::error::Error> for UserError {
     }
 }
 
+impl IntoResponse for JwtError {
+    fn into_response(self) -> Response {
+        let (status, err_message) = match self {
+            JwtError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
+            JwtError::InvalidSignature => (StatusCode::UNAUTHORIZED, "Invalid Signature"),
+            JwtError::ExpiredSignature => (StatusCode::UNAUTHORIZED, "Signature Expired"),
+        };
+
+        let body = Json(json!({
+            "error": err_message,
+        }));
+
+        (status, body).into_response()
+    }
+}
+
 impl IntoResponse for UserError {
     fn into_response(self) -> Response {
         let (status, err_message) = match self {
+            UserError::AlreadyExists => (StatusCode::CONFLICT, "User already exists"),
             UserError::NotFound => (StatusCode::NOT_FOUND, "User not found"),
             UserError::NotCreated => (StatusCode::UNPROCESSABLE_ENTITY, "User not created"),
+            UserError::PasswordMismatch => (StatusCode::FORBIDDEN, "Password did not match"),
             UserError::IO => (StatusCode::REQUEST_TIMEOUT, "Request timed out"),
         };
 

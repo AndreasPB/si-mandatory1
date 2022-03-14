@@ -27,6 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/user", get(routes::get_all_users))
         .route("/user/:name", get(routes::get_user))
         .route("/user", post(routes::post_user))
+        .route("/login", post(routes::post_login))
+        .route("/send_message", post(routes::post_send_message))
         .layer(cors)
         // add 'db_client' to all request's extensions so handlers can access it.
         .layer(Extension(db_client))
