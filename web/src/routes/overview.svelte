@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Table from "../components/table.svelte"
+  import UserTable from "../components/userTable.svelte"
 </script>
 
-<Table />
+<UserTable />

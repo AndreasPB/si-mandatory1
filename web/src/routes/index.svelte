@@ -1,5 +1,2 @@
-<script lang="ts">
-  import Register from "../components/register.svelte"
-</script>
-
-<Register />
+<!-- TODO: Write the users name in the welcome message -->
+<h1>Welcome to the page!</h1>
