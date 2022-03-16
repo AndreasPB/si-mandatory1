@@ -5,12 +5,13 @@ from beanie import init_beanie
 from .document import client, User, UserRegister, UserBase
 from pymongo.errors import DuplicateKeyError
 from .utils import fatsms_send_sms, generate_token
+from .config import get_settings
 import jwt
 
 
 app = FastAPI()
 
-secret = "6horse9"
+secret = get_settings().jwt_secret
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,10 +42,13 @@ async def send_message(token: str = Form(...), message: str = Form(...), to_phon
     """Sends a message"""
     try:
         if jwt.decode(token, secret, algorithms=["HS256"]):
-            await fatsms_send_sms(message=message, to_phone=to_phone)
-            return {"detail" : "Message will be sent within 1 minute"}
+            res = await fatsms_send_sms(message=message, to_phone=to_phone)
+            if res.status_code == 200:
+                return res.json()
+            else:
+                raise HTTPException(status_code=res.status_code, detail=res.json()['info'])
     except jwt.exceptions.DecodeError:
-        raise HTTPException(status_code=403, detail="Unautherized")
+        raise HTTPException(status_code=403, detail="Unauthorized")
 
 
 @app.post("/user", status_code=201)
@@ -52,13 +56,18 @@ async def post_user(phone: str = Form(...), name: str = Form(...)):
     """Posts a user"""
     password = generate_token()
     try:
-        user = User(phone=phone, password=password, name=name)
-        await user.save()
-        await fatsms_send_sms(message=password, to_phone=phone)
+
+        res = await fatsms_send_sms(message=password, to_phone=phone)
+        if res.status_code == 200:
+            user = User(phone=phone, password=password, name=name)
+            await user.save()
+            return res.json()
+        else:
+            raise HTTPException(status_code=res.status_code, detail=res.json()['info'])
+
     except DuplicateKeyError as e:
         print(e)
         raise HTTPException(status_code=409, detail="User already exists")
-    return UserRegister(phone=phone, name=name)
 
 
 @app.get("/user")
