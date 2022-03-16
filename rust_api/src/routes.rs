@@ -18,8 +18,6 @@ use serde_json::{json, Value};
 
 use crate::document::{JwtClaim, Message, UserBase, UserLogin, UserRegister};
 
-const SECRET: &str = "6horse9";
-
 #[derive(Debug)]
 pub enum JwtError {
     InvalidToken,
@@ -110,6 +108,7 @@ pub async fn post_user(
 pub async fn post_login(
     form: Form<UserLogin>,
     Extension(db_client): Extension<mongodb::Database>,
+    Extension(jwt_secret): Extension<String>,
 ) -> Result<(StatusCode, String), UserError> {
     let users = db_client.collection::<UserBase>("User");
     let login_data = form.0;
@@ -132,7 +131,7 @@ pub async fn post_login(
             let jwt = encode(
                 &jwt_header,
                 &jwt_claim,
-                &EncodingKey::from_secret(SECRET.as_ref()),
+                &EncodingKey::from_secret(jwt_secret.as_ref()),
             );
 
             Ok((
@@ -147,12 +146,15 @@ pub async fn post_login(
     }
 }
 
-pub async fn post_send_message(form: Form<Message>) -> Result<Json<Value>, JwtError> {
+pub async fn post_send_message(
+    form: Form<Message>,
+    Extension(jwt_secret): Extension<String>,
+) -> Result<Json<Value>, JwtError> {
     let message = form.0;
 
     decode::<JwtClaim>(
         &message.jwt,
-        &DecodingKey::from_secret(SECRET.as_ref()),
+        &DecodingKey::from_secret(jwt_secret.as_ref()),
         &Validation::new(Algorithm::HS256),
     )
     .map_err(|err| match err.kind() {
