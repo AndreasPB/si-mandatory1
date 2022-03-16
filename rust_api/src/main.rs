@@ -1,6 +1,8 @@
 mod document;
 mod routes;
 
+use std::env;
+
 use axum::{
     extract::Extension,
     routing::{get, post},
@@ -21,13 +23,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
     let client_options = ClientOptions::parse("mongodb://root:example@mongo:27017").await?;
     let db_client = Client::with_options(client_options)?.database("db");
+    let jwt_secret: String = env::var("JWT_SECRET").unwrap();
 
     let cors = CorsLayer::new().allow_methods(Any).allow_origin(Any);
     let app = Router::new()
         .route("/user", get(routes::get_all_users))
         .route("/user/:name", get(routes::get_user))
         .route("/user", post(routes::post_user))
+        .route("/login", post(routes::post_login))
+        .route("/send_message", post(routes::post_send_message))
         .layer(cors)
+        .layer(Extension(jwt_secret))
         // add 'db_client' to all request's extensions so handlers can access it.
         .layer(Extension(db_client))
         // logging of requests and responses

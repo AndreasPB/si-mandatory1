@@ -28,6 +28,8 @@ services:
         - APP_ENV=${APP_ENVIRONMENT}
     container_name: rust_api
     restart: always
+    env_file:
+      - .env
     ports:
       - 9000:9000
     links:
