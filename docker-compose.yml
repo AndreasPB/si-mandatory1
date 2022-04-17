@@ -20,6 +20,30 @@ services:
       - "traefik.http.routers.backend-secured.rule=Host(`python.${HOST_NAME}`)"
       - "traefik.http.routers.backend-secured.tls.certresolver=mytlschallenge"
       - "traefik.docker.network=traefik"
+  go_api:
+    build:
+      context: ./go_api
+      target: ${APP_ENVIRONMENT}
+      args:
+        - APP_ENVIRONMENT=${APP_ENVIRONMENT}
+    container_name: go_api
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 9901:9901
+    volumes:
+      - ./go_api:/app
+    networks:
+      - extern
+      - intern
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.go-api-web.rule=Host(`go.${HOST_NAME}`)"
+      - "traefik.http.routers.go-api-secured.rule=Host(`go.${HOST_NAME}`)"
+      - "traefik.http.routers.go-api-secured.tls.certresolver=mytlschallenge"
+      - "traefik.docker.network=traefik"
+
   rust_api:
     build:
       context: ./rust_api
