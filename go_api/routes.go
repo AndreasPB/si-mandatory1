@@ -69,7 +69,7 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	// TODO: send email
+	SendEmail("<FROM>", []string{"<TO>"}, password)
 	userCollection.InsertOne(Ctx, user)
 	c.JSON(http.StatusCreated, user)
 

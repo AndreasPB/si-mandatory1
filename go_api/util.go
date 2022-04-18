@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/smtp"
@@ -18,12 +19,16 @@ func GenerateToken() string {
 	return string(token[:])
 }
 
-func SendEmail(from string, password string, to []string, message []byte) {
+func SendEmail(from string, to []string, message string) {
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
+	auth := smtp.PlainAuth("", from, EMAIL_PASSWORD, smtpHost)
 
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-	emailErr := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	emailMessage := fmt.Sprintf("To: %s\r\n"+
+		"Subject: Verification token\r\n"+
+		"\r\n"+
+		"Here is your verification code: %s\r\n", to, message)
+	emailErr := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, []byte(emailMessage))
 	if emailErr != nil {
 		log.Fatal(emailErr)
 	}

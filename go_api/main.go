@@ -15,6 +15,7 @@ var MongodbClient, err = mongo.NewClient(options.Client().ApplyURI("mongodb://ro
 var Ctx = context.Background()
 
 var JWT_SECRET = os.Getenv("JWT_SECRET")
+var EMAIL_PASSWORD = os.Getenv("EMAIL_PASSWORD")
 
 func main() {
 	err = MongodbClient.Connect(Ctx)
