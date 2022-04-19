@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -69,7 +70,8 @@ func PostUser(c *gin.Context) {
 		return
 	}
 
-	SendEmail("<FROM>", []string{"<TO>"}, password)
+	emailBody := fmt.Sprintf("Here is your verification code: %s", password)
+	go SendEmail("<FROM>", []string{"<TO>"}, "Verification code", emailBody)
 	userCollection.InsertOne(Ctx, user)
 	c.JSON(http.StatusCreated, user)
 
