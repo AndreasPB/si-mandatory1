@@ -7,3 +7,10 @@ auth.subscribe(val => {
     localStorage.setItem("auth", val)
   }
 })
+
+export const mitIdAuth = writable((browser && sessionStorage.getItem("mitIdAuth")) || "")
+mitIdAuth.subscribe(val => {
+  if (browser) {
+    sessionStorage.setItem("mitIdAuth", val)
+  }
+})
