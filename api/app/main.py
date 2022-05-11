@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
 from .document import client, User, UserRegister, UserBase
 from pymongo.errors import DuplicateKeyError
-from .utils import fatsms_send_sms, generate_token
+from .utils import fatsms_send_sms, generate_token, send_email
 from .config import get_settings
 import jwt
 
@@ -52,19 +52,17 @@ async def send_message(token: str = Form(...), message: str = Form(...), to_phon
 
 
 @app.post("/user", status_code=201)
-async def post_user(phone: str = Form(...), name: str = Form(...)):
+async def post_user(phone: str = Form(...), name: str = Form(...), email: str = Form(...)):
     """Posts a user"""
     password = generate_token()
     try:
-
+        user = User(phone=phone, password=password, name=name, email=email)
+        await user.save()
+        send_email(email, password, name)
         res = await fatsms_send_sms(message=password, to_phone=phone)
-        if res.status_code == 200:
-            user = User(phone=phone, password=password, name=name)
-            await user.save()
-            return res.json()
-        else:
+        if res.status_code != 200:
             raise HTTPException(status_code=res.status_code, detail=res.json()['info'])
-
+        return res.json()
     except DuplicateKeyError as e:
         print(e)
         raise HTTPException(status_code=409, detail="User already exists")
