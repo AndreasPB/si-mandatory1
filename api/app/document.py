@@ -32,5 +32,6 @@ class User(Document):
     phone: Indexed(str, unique=True)
     name: str
     password: str
+    email: str
 
 client = AsyncIOMotorClient("mongodb://root:example@mongo:27017")
