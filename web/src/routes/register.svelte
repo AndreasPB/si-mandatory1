@@ -1,11 +1,11 @@
 <script>
   import RegisterForm from "../components/registerForm.svelte"
   import MitIdLogin from "../components/mitIdLogin.svelte"
-  import {mitIdAuth} from "../stores/jwt";
+  import { mitIdAuth } from "../stores/jwt"
 </script>
 
 {#if $mitIdAuth}
-    <RegisterForm />
+  <RegisterForm />
 {:else}
-    <MitIdLogin />
+  <MitIdLogin />
 {/if}

@@ -2,7 +2,6 @@
   import { variables } from "../variables"
   import { auth } from "../stores/jwt"
 
-
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
 
@@ -37,7 +36,12 @@
         </label>
         <label for="content">
           Content
-          <input type="text" name="content" placeholder="I just took the biggest shit in my life mayn" required />
+          <input
+            type="text"
+            name="content"
+            placeholder="I just took the biggest shit in my life mayn"
+            required
+          />
           <small>Enter message content here</small>
         </label>
       </div>

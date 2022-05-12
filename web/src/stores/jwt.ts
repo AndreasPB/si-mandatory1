@@ -8,7 +8,9 @@ auth.subscribe(val => {
   }
 })
 
-export const mitIdAuth = writable((browser && sessionStorage.getItem("mitIdAuth")) || "")
+export const mitIdAuth = writable(
+  (browser && sessionStorage.getItem("mitIdAuth")) || ""
+)
 mitIdAuth.subscribe(val => {
   if (browser) {
     sessionStorage.setItem("mitIdAuth", val)
