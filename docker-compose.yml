@@ -20,31 +20,6 @@ services:
       - "traefik.http.routers.backend-secured.rule=Host(`python.${HOST_NAME}`)"
       - "traefik.http.routers.backend-secured.tls.certresolver=mytlschallenge"
       - "traefik.docker.network=traefik"
-  rust_api:
-    build:
-      context: ./rust_api
-      target: ${APP_ENVIRONMENT}
-      args:
-        - APP_ENV=${APP_ENVIRONMENT}
-    container_name: rust_api
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - 9000:9000
-    links:
-      - mongo
-    volumes:
-      - ./rust_api:/app
-    networks:
-      - extern
-      - intern
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rust-api-web.rule=Host(`rust.${HOST_NAME}`)"
-      - "traefik.http.routers.rust-api-secured.rule=Host(`rust.${HOST_NAME}`)"
-      - "traefik.http.routers.rust-api-secured.tls.certresolver=mytlschallenge"
-      - "traefik.docker.network=traefik"
   web:
     build: ./web
     container_name: web
