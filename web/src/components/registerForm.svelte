@@ -54,7 +54,7 @@
           <small>We'll never share your phone number with anyone else.</small>
         </label>
         <label for="email">
-          Phone
+          Email
           <input type="text" name="email" placeholder="example@domain.com" required />
           <small>We'll never share your email address with anyone else.</small>
         </label>
