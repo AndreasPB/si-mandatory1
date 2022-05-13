@@ -2,6 +2,8 @@
   import { variables } from "../variables"
   import { auth } from "../stores/jwt"
 
+  let formats = ["JSON", "XML", "YAML", "TSV"]
+
   const handleSubmit = async (event: SubmitEvent) => {
     const form = event.target as HTMLFormElement
 
@@ -24,12 +26,12 @@
       <h1>Create message</h1>
     </hgroup>
     <form
-      action={`${variables.pythonApi}/login`}
+      action={() => {}}
       method="post"
       on:submit|preventDefault={handleSubmit}
     >
       <div class="grid">
-        <label for="content">
+        <label for="topic">
           Topic
           <input type="text" name="topic" placeholder="Medicine" required />
           <small>Enter topic of the message here</small>
@@ -46,6 +48,33 @@
         </label>
       </div>
       <button type="submit">Create</button>
+    </form>
+  </div>
+</article>
+<article>
+  <div>
+    <hgroup>
+      <h1>Get messages</h1>
+    </hgroup>
+    <form
+      action={() => {}}
+      method="get"
+      on:submit|preventDefault={handleSubmit}
+    >
+      <div class="grid">
+        <label for="topic">
+          Topic
+          <input type="text" name="name" placeholder="Medicine" required />
+          <small>Topic of the messages to view</small>
+        </label>
+      </div>
+      <label for="format">Message format</label>
+      <select id="format" required>
+        {#each formats as format}
+            <option value={format} selected>{format}</option>
+        {/each}
+      </select>
+      <button type="submit">Get</button>
     </form>
   </div>
 </article>
