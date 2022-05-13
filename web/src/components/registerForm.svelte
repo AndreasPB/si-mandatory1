@@ -23,7 +23,7 @@
     if (res) {
       if (res.status === 200 || res.status === 201) {
         registerSuccess = true
-        setTimeout(() => window.location.replace("/login"), 3000)
+        setTimeout(() => window.location.replace("/"), 3000)
       } else {
         registerFail = true
         errorMsg = `${res.status} ${res.statusText}`
@@ -52,6 +52,11 @@
           Phone
           <input type="number" name="phone" placeholder="12345678" required />
           <small>We'll never share your phone number with anyone else.</small>
+        </label>
+        <label for="email">
+          Phone
+          <input type="text" name="email" placeholder="example@domain.com" required />
+          <small>We'll never share your email address with anyone else.</small>
         </label>
       </div>
       {#if pressedSubmit}
