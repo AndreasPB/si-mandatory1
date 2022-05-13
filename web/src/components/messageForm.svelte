@@ -25,11 +25,7 @@
     <hgroup>
       <h1>Create message</h1>
     </hgroup>
-    <form
-      action={() => {}}
-      method="post"
-      on:submit|preventDefault={handleSubmit}
-    >
+    <form action={() => {}} method="post" on:submit|preventDefault={handleSubmit}>
       <div class="grid">
         <label for="topic">
           Topic
@@ -56,11 +52,7 @@
     <hgroup>
       <h1>Get messages</h1>
     </hgroup>
-    <form
-      action={() => {}}
-      method="get"
-      on:submit|preventDefault={handleSubmit}
-    >
+    <form action={() => {}} method="get" on:submit|preventDefault={handleSubmit}>
       <div class="grid">
         <label for="topic">
           Topic
@@ -71,7 +63,7 @@
       <label for="format">Message format</label>
       <select id="format" required>
         {#each formats as format}
-            <option value={format} selected>{format}</option>
+          <option value={format} selected>{format}</option>
         {/each}
       </select>
       <button type="submit">Get</button>
