@@ -37,7 +37,7 @@
           <input
             type="text"
             name="content"
-            placeholder="I just took the biggest shit in my life mayn"
+            placeholder="Medicine information"
             required
           />
           <small>Enter message content here</small>
