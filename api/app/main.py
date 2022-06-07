@@ -1,7 +1,11 @@
-from fastapi import FastAPI, Form
+from uuid import uuid4
+from fastapi import FastAPI, Form, Header
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
+from fastapi.param_functions import Depends
+import httpx
+from pydantic.main import BaseModel
 from .document import client, User, UserRegister, UserBase
 from pymongo.errors import DuplicateKeyError
 from .utils import fatsms_send_sms, generate_token, send_email
@@ -12,6 +16,8 @@ import jwt
 app = FastAPI()
 
 secret = get_settings().jwt_secret
+mitid_secret = get_settings().mitid_secret
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,9 +28,39 @@ app.add_middleware(
 )
 
 
+class Message(BaseModel):
+    id: str = str(uuid4())
+    content: str
+
+async def verify_auth(auth: str = Header(...)):
+    try:
+        if jwt.decode(auth, secret, algorithms=["HS256"]):
+            return auth
+
+    except jwt.exceptions.DecodeError:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+
+async def verify_mitid(mitid_auth: str = Header(...)):
+    try:
+        if jwt.decode(mitid_auth, mitid_secret, algorithms=["HS256"]):
+            return mitid_auth
+
+    except jwt.exceptions.DecodeError:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
 @app.on_event("startup")
 async def init_db():
     await init_beanie(database=client.db_name, document_models=[User])
+
+
+@app.post("/create-message", dependencies=[Depends(verify_auth)], status_code=201)
+async def create_message(token: str, content: str = Form(...), topic: str = Form(...)):
+    """Creates a message by calling ESB"""
+    with httpx.Client() as httpx_client:
+        res = httpx_client.post(f"http://go_esb:9999/create-message?topic={topic}&token=3333",
+                                json=Message(content=content).dict())
+        return res.json()
 
 
 @app.post("/login")
