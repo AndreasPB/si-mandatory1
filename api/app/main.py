@@ -37,8 +37,11 @@ async def verify_auth(auth: str = Header(...)):
         if jwt.decode(auth, secret, algorithms=["HS256"]):
             return auth
 
-    except jwt.exceptions.DecodeError:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+    except jwt.exceptions.DecodeError as e:
+        print(e)
+
+    raise HTTPException(status_code=403, detail="Unauthorized")
+
 
 
 async def verify_mitid(mitid_auth: str = Header(...)):
@@ -46,8 +49,10 @@ async def verify_mitid(mitid_auth: str = Header(...)):
         if jwt.decode(mitid_auth, mitid_secret, algorithms=["HS256"]):
             return mitid_auth
 
-    except jwt.exceptions.DecodeError:
-        raise HTTPException(status_code=403, detail="Unauthorized")
+    except jwt.exceptions.DecodeError as e:
+        print(e)
+
+    raise HTTPException(status_code=403, detail="Unauthorized")
 
 @app.on_event("startup")
 async def init_db():
@@ -73,7 +78,7 @@ async def sign_in(phone: str = Form(...), password: str = Form(...)):
     raise HTTPException(status_code=403, detail="Phone or password incorrect")
 
 
-@app.post("/send_message")
+@app.post("/send_message", dependencies=[Depends(verify_auth)])
 async def send_message(token: str = Form(...), message: str = Form(...), to_phone: str = Form(...)):
     """Sends a message"""
     try:
@@ -87,8 +92,8 @@ async def send_message(token: str = Form(...), message: str = Form(...), to_phon
         raise HTTPException(status_code=403, detail="Unauthorized")
 
 
-@app.post("/user", status_code=201)
-async def post_user(phone: str = Form(...), name: str = Form(...), email: str = Form(...)):
+@app.post("/user", dependencies=[Depends(verify_mitid)], status_code=201)
+async def register_user(phone: str = Form(...), name: str = Form(...), email: str = Form(...)):
     """Posts a user"""
     password = generate_token()
     try:
@@ -104,14 +109,14 @@ async def post_user(phone: str = Form(...), name: str = Form(...), email: str = 
         raise HTTPException(status_code=409, detail="User already exists")
 
 
-@app.get("/user")
+@app.get("/user", dependencies=[Depends(verify_mitid)])
 async def get_users():
     """Finds all users"""
     users = await User.find().to_list()
     return list(map(dict, users))
 
 
-@app.get("/user/{name}")
+@app.get("/user/{name}", dependencies=[Depends(verify_mitid)])
 async def get_user_by_name(name: str):
     """Finds the user by name"""
     return await User.find_one(User.name == name)
