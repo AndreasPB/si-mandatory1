@@ -60,7 +60,7 @@ async def init_db():
 
 
 @app.post("/create-message", dependencies=[Depends(verify_auth)], status_code=201)
-async def create_message(token: str, content: str = Form(...), topic: str = Form(...)):
+async def create_message(content: str = Form(...), topic: str = Form(...)):
     """Creates a message by calling ESB"""
     with httpx.Client() as httpx_client:
         res = httpx_client.post(f"http://go_esb:9999/create-message?topic={topic}&token=3333",
@@ -97,6 +97,7 @@ async def register_user(phone: str = Form(...), name: str = Form(...), email: st
     """Posts a user"""
     password = generate_token()
     try:
+        print(password)
         user = User(phone=phone, password=password, name=name, email=email)
         await user.save()
         send_email(email, password, name)
