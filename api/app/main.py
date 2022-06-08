@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
-from fastapi import FastAPI, Form, Header
+from fastapi import FastAPI, Form, Header, Response
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
@@ -104,7 +104,6 @@ async def register_user(phone: str = Form(...), name: str = Form(...), email: st
     """Posts a user"""
     password = generate_token()
     try:
-        print(password)
         user = User(phone=phone, password=password, name=name, email=email)
         await user.save()
         send_email(email, password, name)
@@ -128,6 +127,13 @@ async def get_users():
 async def get_user_by_name(name: str):
     """Finds the user by name"""
     return await User.find_one(User.name == name)
+
+
+@app.get("/read-messages", dependencies=[Depends(verify_auth)], status_code=200)
+async def read_messages(topic: str, skip: int, limit: int, message_format: str):
+    """Reads all messages from a given topic by calling ESB"""
+    res = httpx.get(f"http://go_esb:9999/topic/{topic}/skip/{skip}/limit/{limit}/format/{message_format}")
+    return res.content
 
 
 @app.get("/")
