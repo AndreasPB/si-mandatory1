@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     app_environment: Environment = Environment.DEVELOPMENT
     fatsms_key: str = "no_key_present"
     jwt_secret: str = "secret"
+    mitid_secret: str = "secret"
     fat_sms_url: str = "https://fatsms.com"
     email_password: str
 

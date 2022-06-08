@@ -1,7 +1,11 @@
-from fastapi import FastAPI, Form
+from uuid import uuid4
+from fastapi import FastAPI, Form, Header
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
+from fastapi.param_functions import Depends
+import httpx
+from pydantic.main import BaseModel
 from .document import client, User, UserRegister, UserBase
 from pymongo.errors import DuplicateKeyError
 from .utils import fatsms_send_sms, generate_token, send_email
@@ -12,6 +16,8 @@ import jwt
 app = FastAPI()
 
 secret = get_settings().jwt_secret
+mitid_secret = get_settings().mitid_secret
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,9 +28,44 @@ app.add_middleware(
 )
 
 
+class Message(BaseModel):
+    id: str = str(uuid4())
+    content: str
+
+async def verify_auth(auth: str = Header(...)):
+    try:
+        if jwt.decode(auth, secret, algorithms=["HS256"]):
+            return auth
+
+    except jwt.exceptions.DecodeError as e:
+        print(e)
+
+    raise HTTPException(status_code=403, detail="Unauthorized")
+
+
+
+async def verify_mitid(mitid_auth: str = Header(...)):
+    try:
+        if jwt.decode(mitid_auth, mitid_secret, algorithms=["HS256"]):
+            return mitid_auth
+
+    except jwt.exceptions.DecodeError as e:
+        print(e)
+
+    raise HTTPException(status_code=403, detail="Unauthorized")
+
 @app.on_event("startup")
 async def init_db():
     await init_beanie(database=client.db_name, document_models=[User])
+
+
+@app.post("/create-message", dependencies=[Depends(verify_auth)], status_code=201)
+async def create_message(content: str = Form(...), topic: str = Form(...)):
+    """Creates a message by calling ESB"""
+    with httpx.Client() as httpx_client:
+        res = httpx_client.post(f"http://go_esb:9999/create-message?topic={topic}&token=3333",
+                                json=Message(content=content).dict())
+        return res.json()
 
 
 @app.post("/login")
@@ -37,7 +78,7 @@ async def sign_in(phone: str = Form(...), password: str = Form(...)):
     raise HTTPException(status_code=403, detail="Phone or password incorrect")
 
 
-@app.post("/send_message")
+@app.post("/send_message", dependencies=[Depends(verify_auth)])
 async def send_message(token: str = Form(...), message: str = Form(...), to_phone: str = Form(...)):
     """Sends a message"""
     try:
@@ -51,11 +92,12 @@ async def send_message(token: str = Form(...), message: str = Form(...), to_phon
         raise HTTPException(status_code=403, detail="Unauthorized")
 
 
-@app.post("/user", status_code=201)
-async def post_user(phone: str = Form(...), name: str = Form(...), email: str = Form(...)):
+@app.post("/user", dependencies=[Depends(verify_mitid)], status_code=201)
+async def register_user(phone: str = Form(...), name: str = Form(...), email: str = Form(...)):
     """Posts a user"""
     password = generate_token()
     try:
+        print(password)
         user = User(phone=phone, password=password, name=name, email=email)
         await user.save()
         send_email(email, password, name)
@@ -68,14 +110,14 @@ async def post_user(phone: str = Form(...), name: str = Form(...), email: str = 
         raise HTTPException(status_code=409, detail="User already exists")
 
 
-@app.get("/user")
+@app.get("/user", dependencies=[Depends(verify_mitid)])
 async def get_users():
     """Finds all users"""
     users = await User.find().to_list()
     return list(map(dict, users))
 
 
-@app.get("/user/{name}")
+@app.get("/user/{name}", dependencies=[Depends(verify_mitid)])
 async def get_user_by_name(name: str):
     """Finds the user by name"""
     return await User.find_one(User.name == name)
