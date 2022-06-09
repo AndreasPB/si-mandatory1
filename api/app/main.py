@@ -45,13 +45,17 @@ async def verify_auth(auth: str = Header(...)):
 
 
 
-async def verify_mitid(mitid_auth: str = Header(...)):
+async def verify_mitid(auth: str = Header(...)):
     try:
-        if jwt.decode(mitid_auth, mitid_secret, algorithms=["HS256"]):
-            return mitid_auth
+        if jwt.decode(auth, mitid_secret, algorithms=["HS256"]):
+            return auth
 
     except jwt.exceptions.DecodeError as e:
         print(e)
+
+    except jwt.exceptions.ExpiredSignatureError as e:
+        raise HTTPException(status_code=419, detail="Your session has expired")
+
 
     raise HTTPException(status_code=403, detail="Unauthorized")
 
