@@ -1,5 +1,6 @@
 <script lang="ts">
   import { variables } from "../variables"
+  import { mitIdAuth } from "../stores/jwt"
 
   let pressedSubmit: boolean
   let registerSuccess: boolean
@@ -15,9 +16,16 @@
     // Sending body as x-www-form-url-encoded
     const res = await fetch(form.action, {
       method: form.method,
+      headers: { auth: $mitIdAuth },
       body: new URLSearchParams([...(new FormData(form) as any)]),
     })
-      .then((response: Response) => response)
+      .then((res: Response) => {
+        if (res.status === 419) {
+          console.log(res.statusText)
+          $mitIdAuth = ""
+        }
+        return res
+      })
       .catch(error => console.log(error))
 
     if (res) {
