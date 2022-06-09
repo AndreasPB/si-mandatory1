@@ -2,7 +2,6 @@
   import { variables } from "../variables"
   import { auth } from "../stores/jwt"
 
-  let formats = ["JSON", "XML", "YAML", "TSV"]
   let pressedSubmit: boolean
   let createSuccess: boolean
   let createFail: boolean
@@ -16,6 +15,7 @@
     // Sending body as x-www-form-url-encoded
     const res = await fetch(form.action, {
       method: form.method,
+      headers: { auth: $auth },
       body: new URLSearchParams([...(new FormData(form) as any)]),
     })
       .then((response: Response) => response)
@@ -38,7 +38,11 @@
     <hgroup>
       <h1>Create message</h1>
     </hgroup>
-    <form action={`${variables.pythonApi}/create-message`} method="post" on:submit|preventDefault={ handleCreateMessage }>
+    <form
+      action={`${variables.pythonApi}/create-message`}
+      method="post"
+      on:submit|preventDefault={handleCreateMessage}
+    >
       <div class="grid">
         <label for="topic">
           Topic
@@ -61,7 +65,9 @@
           <button aria-busy="true" disabled>Creating message!</button>
           <small>Message successfully created</small>
         {:else}
-          <button aria-busy="true" class="secondary" disabled>Trying to create message...</button>
+          <button aria-busy="true" class="secondary" disabled
+            >Trying to create message...</button
+          >
         {/if}
       {:else if createFail}
         <button type="submit">Failed to create message</button>
