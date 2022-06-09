@@ -1,3 +1,4 @@
+from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from fastapi import FastAPI, Form, Header
 from fastapi.exceptions import HTTPException
@@ -73,8 +74,10 @@ async def sign_in(phone: str = Form(...), password: str = Form(...)):
     """Sign in for users"""
     if user := await User.find_one(User.phone == phone):
         if user.password == password:
-            base_user = UserBase(**user.dict())
-            return jwt.encode(base_user.dict(), secret, algorithm="HS256")
+            base_user = (UserBase(**user.dict())).dict()
+            base_user["exp"] = datetime.now(tz=timezone.utc) + timedelta(hours=1)
+
+            return jwt.encode(base_user,  secret, algorithm="HS256")
     raise HTTPException(status_code=403, detail="Phone or password incorrect")
 
 
