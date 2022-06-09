@@ -2,20 +2,33 @@
   import { variables } from "../variables"
   import { auth } from "../stores/jwt"
 
-  let formats = ["JSON", "XML", "YAML", "TSV"]
+  let pressedSubmit: boolean
+  let createSuccess: boolean
+  let createFail: boolean
+  let errorMsg: string
 
-  const handleSubmit = async (event: SubmitEvent) => {
+  const handleCreateMessage = async (event: SubmitEvent) => {
+    pressedSubmit = true
+    setTimeout(() => (pressedSubmit = false), 2000)
     const form = event.target as HTMLFormElement
 
     // Sending body as x-www-form-url-encoded
     const res = await fetch(form.action, {
       method: form.method,
+      headers: { auth: $auth },
       body: new URLSearchParams([...(new FormData(form) as any)]),
     })
       .then((response: Response) => response)
       .catch(error => console.log(error))
-    if (res && res.status === 200) {
-      $auth = await res.text()
+
+    if (res) {
+      if (res.status === 200 || res.status === 201) {
+        createSuccess = true
+        setTimeout(() => window.location.replace("/"), 3000)
+      } else {
+        createFail = true
+        errorMsg = `${res.status} ${res.statusText}`
+      }
     }
   }
 </script>
@@ -25,7 +38,11 @@
     <hgroup>
       <h1>Create message</h1>
     </hgroup>
-    <form action={() => {}} method="post" on:submit|preventDefault={handleSubmit}>
+    <form
+      action={`${variables.pythonApi}/create-message`}
+      method="post"
+      on:submit|preventDefault={handleCreateMessage}
+    >
       <div class="grid">
         <label for="topic">
           Topic
@@ -43,30 +60,21 @@
           <small>Enter message content here</small>
         </label>
       </div>
-      <button type="submit">Create</button>
-    </form>
-  </div>
-</article>
-<article>
-  <div>
-    <hgroup>
-      <h1>Get messages</h1>
-    </hgroup>
-    <form action={() => {}} method="get" on:submit|preventDefault={handleSubmit}>
-      <div class="grid">
-        <label for="topic">
-          Topic
-          <input type="text" name="name" placeholder="Medicine" required />
-          <small>Topic of the messages to view</small>
-        </label>
-      </div>
-      <label for="format">Message format</label>
-      <select id="format" required>
-        {#each formats as format}
-          <option value={format} selected>{format}</option>
-        {/each}
-      </select>
-      <button type="submit">Get</button>
+      {#if pressedSubmit}
+        {#if createSuccess}
+          <button aria-busy="true" disabled>Creating message!</button>
+          <small>Message successfully created</small>
+        {:else}
+          <button aria-busy="true" class="secondary" disabled
+            >Trying to create message...</button
+          >
+        {/if}
+      {:else if createFail}
+        <button type="submit">Failed to create message</button>
+        <small>{errorMsg}</small>
+      {:else}
+        <button type="submit">Create Message</button>
+      {/if}
     </form>
   </div>
 </article>

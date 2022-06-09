@@ -15,7 +15,7 @@
       .then((response: Response) => response)
       .catch(error => console.log(error))
     if (res && res.status === 200) {
-      $auth = await res.text()
+      $auth = await res.json()
     }
   }
 </script>
