@@ -65,10 +65,10 @@ async def init_db():
 
 
 @app.post("/create-message", dependencies=[Depends(verify_auth)], status_code=201)
-async def create_message(content: str = Form(...), topic: str = Form(...)):
+async def create_message(content: str = Form(...), topic: str = Form(...), auth: str = Header(...)):
     """Creates a message by calling ESB"""
     with httpx.Client() as httpx_client:
-        res = httpx_client.post(f"http://go_esb:9999/create-message?topic={topic}&token=3333",
+        res = httpx_client.post(f"http://go_esb:9999/create-message?topic={topic}", headers={"auth": auth},
                                 json=Message(content=content).dict())
         return res.json()
 
