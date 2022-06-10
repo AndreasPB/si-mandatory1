@@ -2,49 +2,53 @@
   import { variables } from "../variables"
   import { auth } from "../stores/jwt"
 
-  let formats = ["JSON", "XML", "YAML", "TSV"]
+  let topic: string
+  let messages: []
+  let loaded: boolean
 
-  const handleSubmit = async (event: SubmitEvent) => {
-    const form = event.target as HTMLFormElement
+  const handleFetchMessages = async () => {
+    const res = await fetch(`${variables.pythonApi}/read-messages/${topic}`, {
+      headers: { auth: $auth },
+    }).then((response: Response) => response)
 
-    // Sending body as x-www-form-url-encoded
-    const res = await fetch(form.action, {
-      method: form.method,
-      body: new URLSearchParams([...(new FormData(form) as any)]),
-    })
-      .then((response: Response) => response)
-      .catch(error => console.log(error))
-    if (res && res.status === 200) {
-      $auth = await res.text()
-    }
+    messages = await res.json()
+    loaded = true
   }
 </script>
 
 <article>
   <div>
     <hgroup>
-      <h1>Create message</h1>
+      <h1>Read messages</h1>
     </hgroup>
-    <form action={`${variables.pythonApi}/read-messages`} method="get" on:submit|preventDefault={handleSubmit}>
-      <div class="grid">
-        <label for="topic">
-          Topic
-          <input type="text" name="topic" placeholder="Medicine" required />
-          <small>Enter topic of the message here</small>
-        </label>
-        <label for="format">
-          Content
-          <input
-            type="text"
-            name="content"
-            placeholder="Format"
-            required
-          />
-          <small>Enter message content here</small>
-        </label>
-      </div>
-      <button type="submit">Create</button>
-    </form>
+    <div class="grid">
+      <label>
+        Topic
+        <input bind:value={topic} type="text" name="topic" placeholder="Medicine" required />
+        <small>Enter topic of the message here</small>
+      </label>
+    </div>
+    <button type="submit" on:click={handleFetchMessages}>Fetch Messages</button>
   </div>
+  {#if loaded}
+    <h1>Messages</h1>
+    <table role="grid">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Content</th>
+        </tr>
+      </thead>
+      {#if messages}
+        {#each messages as message, i}
+          <tbody>
+            <tr>
+              <th scope="row">{i + 1}</th>
+              <td>{message.content}</td>
+            </tr>
+          </tbody>
+        {/each}
+      {/if}
+    </table>
+  {/if}
 </article>
-

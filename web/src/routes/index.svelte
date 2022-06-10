@@ -1,11 +1,13 @@
 <script lang="ts">
   import LoginForm from "../components/loginForm.svelte"
   import MessageForm from "../components/messageForm.svelte"
+  import ReadMessagesForm from "../components/readMessagesForm.svelte"
   import { auth } from "../stores/jwt"
 </script>
 
 {#if $auth}
   <MessageForm />
+  <ReadMessagesForm />
 {:else}
   <LoginForm />
 {/if}

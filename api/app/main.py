@@ -1,13 +1,13 @@
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
-from fastapi import FastAPI, Form, Header, Response
+from fastapi import FastAPI, Form, Header
 from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from beanie import init_beanie
 from fastapi.param_functions import Depends
 import httpx
 from pydantic.main import BaseModel
-from .document import client, User, UserRegister, UserBase
+from .document import client, User, UserBase
 from pymongo.errors import DuplicateKeyError
 from .utils import fatsms_send_sms, generate_token, send_email
 from .config import get_settings
@@ -129,11 +129,11 @@ async def get_user_by_name(name: str):
     return await User.find_one(User.name == name)
 
 
-@app.get("/read-messages", dependencies=[Depends(verify_auth)], status_code=200)
-async def read_messages(topic: str, skip: int, limit: int, message_format: str):
+@app.get("/read-messages/{topic}", dependencies=[Depends(verify_auth)], status_code=200)
+async def read_messages(topic: str):
     """Reads all messages from a given topic by calling ESB"""
-    res = httpx.get(f"http://go_esb:9999/topic/{topic}/skip/{skip}/limit/{limit}/format/{message_format}")
-    return res.content
+    res = httpx.get(f"http://go_esb:9999/topic/{topic}/skip/0/limit/100/format/JSON")
+    return res.json()
 
 
 @app.get("/")
