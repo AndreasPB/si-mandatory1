@@ -24,7 +24,13 @@
     <div class="grid">
       <label>
         Topic
-        <input bind:value={topic} type="text" name="topic" placeholder="Medicine" required />
+        <input
+          bind:value={topic}
+          type="text"
+          name="topic"
+          placeholder="Medicine"
+          required
+        />
         <small>Enter topic of the message here</small>
       </label>
     </div>
