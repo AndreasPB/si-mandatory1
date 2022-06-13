@@ -107,10 +107,10 @@ async def register_user(phone: str = Form(...), name: str = Form(...), email: st
         user = User(phone=phone, password=password, name=name, email=email)
         await user.save()
         send_email(email, password, name)
-        res = await fatsms_send_sms(message=password, to_phone=phone)
-        if res.status_code != 200:
-            raise HTTPException(status_code=res.status_code, detail=res.json()['info'])
-        return res.json()
+        # res = await fatsms_send_sms(message=password, to_phone=phone)
+        # if res.status_code != 200:
+        #     raise HTTPException(status_code=res.status_code, detail=res.json()['info'])
+        # return res.json()
     except DuplicateKeyError as e:
         print(e)
         raise HTTPException(status_code=409, detail="User already exists")
