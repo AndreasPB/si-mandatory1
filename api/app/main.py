@@ -130,9 +130,9 @@ async def get_user_by_name(name: str):
 
 
 @app.get("/read-messages/{topic}", dependencies=[Depends(verify_auth)], status_code=200)
-async def read_messages(topic: str):
+async def read_messages(topic: str, auth: str = Header(...)):
     """Reads all messages from a given topic by calling ESB"""
-    res = httpx.get(f"http://go_esb:9999/topic/{topic}/skip/0/limit/100/format/JSON")
+    res = httpx.get(f"http://go_esb:9999/topic/{topic}/skip/0/limit/100/format/JSON", headers={"auth": auth})
     return res.json()
 
 
