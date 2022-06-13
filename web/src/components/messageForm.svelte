@@ -24,7 +24,6 @@
     if (res) {
       if (res.status === 200 || res.status === 201) {
         createSuccess = true
-        setTimeout(() => window.location.replace("/"), 3000)
       } else {
         createFail = true
         errorMsg = `${res.status} ${res.statusText}`
